@@ -80,7 +80,6 @@ const getSolvedProblems = async (handle) => {
 
             const problemIds = items.map(p => p.problemId);
             allProblems.push(problemIds)
-            // allProblems = allProblems.concat(problemIds);
 
             page++;
             await new Promise(resolve => setTimeout(resolve, 200));
@@ -92,15 +91,14 @@ const getSolvedProblems = async (handle) => {
 }
 
 /**
- * 해당 유저가 푼 모든 문제를 로컬 저장소에 저장하는 함수
+ * 처음 접속한 유저 추가
  */
-const saveSolvedProblems = async (handle) => {
+const firstJoin = async (handle) => {
     const problems = await getSolvedProblems(handle);
     const savedData = getJson();
     savedData[handle] = problems;
 
     fs.writeFileSync(filePath, JSON.stringify(savedData, null, 2), "utf-8");
-    console.log(`${handle}님이 푼 문제 ${problems.length}개 저장 완료 (${filePath})`);
 }
 
 const getJson = () => {
@@ -130,6 +128,6 @@ const getNewlySolved = async (handle) => {
 
 module.exports = {
     getRecentSolved,
-    saveSolvedProblems,
+    firstJoin,
     getNewlySolved
 }
