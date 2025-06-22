@@ -1,6 +1,8 @@
 // 1. 주요 클래스 가져오기
 const { Client, Events, GatewayIntentBits } = require('discord.js');
-const { token, serverID } = require('./config.json');
+require('dotenv').config();
+const token = process.env.DISCORD_TOKEN;
+const serverID = process.env.SERVER_ID;
 
 let inter;
 let channel
