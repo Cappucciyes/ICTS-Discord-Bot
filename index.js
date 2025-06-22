@@ -1,6 +1,6 @@
 // 1. 주요 클래스 가져오기
 const { Client, Events, GatewayIntentBits } = require('discord.js');
-const { getJson, getRecentSolved, firstJoin } = require('./baekjoon.js');
+const { getJson, getRecentSolved, firstJoin, getNewlySolved } = require('./baekjoon.js');
 require('dotenv').config();
 const token = process.env.DISCORD_TOKEN;
 const serverID = process.env.SERVER_ID;
@@ -50,6 +50,22 @@ client.on('messageCreate', (message) => {
         userRegister(handle);
         message.reply(`${handle}님의 문제 풀이 기록 저장 중...`);
         message.reply(`${handle}님의 푼 문제 저장 완료`);
+    }
+
+    if (message.content.startsWith("/갱신")) {
+        const parts = message.content.split(" ");
+        if (parts.length < 2) {
+            return message.reply("백준 ID를 입력해주세요. 예: `/message rlatjwls3333`");
+        }
+        const handle = parts[1];
+
+        message.reply(`${handle}님의 문제 풀이 기록 저장 중...`);
+        getNewlySolved(handle).then((res) => {
+            message.reply(`${handle}님의 푼 문제 저장 완료`);
+        }).catch((err) => {
+            console.log("갱신 실패: ")
+            console.log(err.message)
+        })
     }
 
     if (message.content == "말해봐") {
