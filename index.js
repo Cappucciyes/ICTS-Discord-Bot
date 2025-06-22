@@ -14,7 +14,6 @@ const client = new Client({
     ]
 });
 
-// 3. 봇이 준비됐을때 한번만(once) 표시할 메시지
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
     channel = client.channels.cache.get(serverID)
@@ -22,8 +21,6 @@ client.once(Events.ClientReady, readyClient => {
     inter = setInterval(() => {
         channel.send('안녕? 테스트 메시지야!');
     }, 1000);
-
-
 });
 
 // 4. 누군가 ping을 작성하면 pong으로 답장한다.
