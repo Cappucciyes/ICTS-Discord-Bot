@@ -34,7 +34,7 @@ const getRecentSolved = async (handle) => {
         const $ = cheerio.load(res.data);
         const rows = $("table.table tbody tr");
 
-        for (const row of rows) {
+        for(const row of rows) {
             const tds = $(row).find("td");
             const problemLink = tds.eq(2).find("a");
             const problemId = parseInt(problemLink.text().trim(), 10);
@@ -43,7 +43,7 @@ const getRecentSolved = async (handle) => {
             const solvedRes = await axios.get(`https://solved.ac/api/v3/problem/lookup?problemIds=${problemId}`);
             const rank = levelToText(solvedRes.data[0].level);
 
-            if (!isNaN(problemId) && !seen.has(problemId)) {
+            if(!isNaN(problemId) && !seen.has(problemId)) {
                 seen.add(problemId);
                 recent.push({
                     problemId,
@@ -53,7 +53,7 @@ const getRecentSolved = async (handle) => {
                 });
             }
         }
-    } catch (err) {
+    } catch(err) {
         console.error("크롤링 실패:", err.message);
     }
     return recent;
@@ -67,24 +67,29 @@ const getSolvedProblems = async (handle) => {
     let allProblems = [];
 
     try {
-        while (true) {
+        while(true) {
             const res = await axios.get("https://solved.ac/api/v3/search/problem", {
                 params: {
                     query: `solved_by:${handle}`,
                     page,
                     size: 50
+                },
+                headers: {
+                    "User-Agent": "Mozilla/5.0",
+                    "Accept-Language": "ko,en;q=0.9",
+                    "Referer": "https://solved.ac/"
                 }
             });
             const items = res.data.items;
-            if (!items || items.length === 0) break;
+            if(!items || items.length === 0) break;
 
             const problemIds = items.map(p => p.problemId);
-            allProblems.push(problemIds)
+            allProblems.push(...problemIds)
 
             page++;
             await new Promise(resolve => setTimeout(resolve, 200));
         }
-    } catch (err) {
+    } catch(err) {
         console.error("에러 발생:", err.message);
     }
     return allProblems;
@@ -97,7 +102,6 @@ const firstJoin = async (handle) => {
     const problems = await getSolvedProblems(handle);
     const savedData = getJson();
     savedData[handle] = problems;
-
     fs.writeFileSync(filePath, JSON.stringify(savedData, null, 2), "utf-8");
 }
 
@@ -117,7 +121,7 @@ const getNewlySolved = async (handle) => {
     const recent = await getRecentSolved(handle);
     const newlySolved = recent.filter(p => !oldProblems.has(p.problemId));
 
-    for (const problem of newlySolved) {
+    for(const problem of newlySolved) {
         savedData[handle].push(problem.problemId);
     }
 
@@ -125,6 +129,24 @@ const getNewlySolved = async (handle) => {
     fs.writeFileSync(filePath, JSON.stringify(savedData, null, 2), "utf-8");
     return newlySolved;
 }
+
+/**
+ * 문제 추천
+ */
+// const recommendProblems = async () => {
+//     const bronze = 0;
+//     const silver = 0;
+//     const gold = 0;
+//     const platinum = 0;
+//     const diamond = 0;
+//     const ruby = 0;
+
+//     let problems = [];
+//     for(let i=0;i<bronze;i++) {
+//         const solvedRes = await axios.get(`https://solved.ac/api/v3/search/problem?query=*b+&page=1&sort=random&direction=asc`);
+//         const rank = levelToText(solvedRes.data[0].level);
+//     }
+// }
 
 module.exports = {
     getRecentSolved,
