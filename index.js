@@ -21,7 +21,7 @@ client.once(Events.ClientReady, readyClient => {
     channel = client.channels.cache.get(serverID)
 
     inter = setInterval(() => {
-        channel.send('안녕? 테스트 메시지야!');
+        channel.send('Hello Server!');
     }, 1000);
 });
 
