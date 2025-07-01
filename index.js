@@ -111,6 +111,7 @@ client.login(token)
 
 function userRegister(handle) {
     firstJoin(handle).then((res) => {
+        console.log(res)
         channel.send(`Welcome: ${handle}`)
     })
 }
