@@ -32,13 +32,10 @@ client.on('messageCreate', (message) => {
 
     }
 
-    if (message.content.startsWith("/새로푼")) {
-        clearInterval(inter)
+    if (message.content.startsWith("/모두확인")) {
+        checkAllUser();
     }
 
-    // if (message.content == "/모두푼") {
-    //     checkAllUser();
-    // }
 
     if (message.content.startsWith("/등록")) {
         const parts = message.content.split(" ");
@@ -83,31 +80,31 @@ client.on('messageCreate', (message) => {
 client.login(token)
 
 
-// function checkAllUser() {
-//     if (updateUser) {
-//         currentActiveUser = getJson();
-//         updateUser = false
-//     }
+function checkAllUser() {
+    if (updateUser) {
+        currentActiveUser = getJson();
+        updateUser = false
+    }
 
-//     for (let user in currentActiveUser) {
-//         const recent = getRecentSolved(user);
+    for (let user in currentActiveUser) {
+        const recent = getRecentSolved(user);
 
-//         recent.then((res) => {
-//             if (recent === '') {
-//                 reject(new Error());
-//             }
+        recent.then((res) => {
+            if (recent === '') {
+                reject(new Error());
+            }
 
-//             let msg = '최근 푼 문제 : \n';
-//             for (const problem of res) {
-//                 msg += `• [${problem.rank}] ${problem.title} (${problem.url})\n`;
-//             }
+            let msg = '최근 푼 문제 : \n';
+            for (const problem of res) {
+                msg += `• [${problem.rank}] ${problem.title} (${problem.url})\n`;
+            }
 
-//             channel.send(msg);
-//         }).catch((err) => {
-//             channel.send("제대로된 핸들을 입력하세요")
-//         })
-//     }
-// }
+            channel.send(msg);
+        }).catch((err) => {
+            channel.send("제대로된 핸들을 입력하세요")
+        })
+    }
+}
 
 function userRegister(handle) {
     firstJoin(handle).then((res) => {
