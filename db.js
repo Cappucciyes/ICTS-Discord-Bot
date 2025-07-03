@@ -6,7 +6,6 @@ const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
 
 function readJSON(path) {
-    console.log(path)
     const fileData = fs.readFileSync(path, "utf-8");
     const savedData = JSON.parse(fileData);
     return savedData;
@@ -55,11 +54,15 @@ async function registerUser(userID) {
 
 async function udpateUser(userID) {
     let userDataPath = USERS_DATA_DIR + `${userID}.json`
-    
     if (fs.existsSync(userDataPath)) {
+        // is in nested promise to avoid unnecessary API calls
+        // plan to implement so it would only return "changed data" only.
         let result = getUserData(userID).then((userDataResponse)=> {
             let currentUserData = readJSON(userDataPath)
-
+            
+            // Avoid unnecessary API calls by only checking solvedCount first.
+            // Only when "solvedCount" has increased, it will fetch list of every problem the user have ever solved and update data
+            // else it won't update anything
             if (userDataResponse["solvedCount"] > currentUserData["currentData"]["solvedCount"]) {
                 return getSolvedProblems(userID).then((allSolvedProblems) => {
                     let today = (new Date()).toJSON();
@@ -77,14 +80,15 @@ async function udpateUser(userID) {
                     writeJSON(userDataPath, currentUserData)
                     return currentUserData
                 })
+            } else {
+                return currentUserData
             }
         }) 
 
         return result
-
     } else {
         throw Error(`${userID} is not a registered member`) 
-    }    
+    }
 }
 
 module.exports = {

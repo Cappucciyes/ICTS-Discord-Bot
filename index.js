@@ -54,7 +54,7 @@ client.on('messageCreate', (message) => {
 
         message.reply(`${handle}님의 정보 갱신 중...`);
         udpateUser(handle).then((res) => {
-            message.reply(`${handle}님의 정보 갱신 완료!`);
+            message.reply(`${handle}님의 정보 갱신 완료!\n You have solved ${res["currentData"]["solvedCount"]} problems so far`);
         }).catch((err) => {
             message.reply("갱신 중 문제 발생! 방장에게 간단한 상황설명과 에러 메세지를 보내주세요!")
             message.reply("error: " + err.message);
