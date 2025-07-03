@@ -1,7 +1,7 @@
 // 1. 주요 클래스 가져오기
 const { Client, Events, GatewayIntentBits } = require('discord.js');
 // const { getJson, getRecentSolved, firstJoin, getNewlySolved } = require('./baekjoon.js');
-const { registerUser } = require("./db.js")
+const { registerUser, udpateUser } = require("./db.js")
 require('dotenv').config();
 // console.log(process.env)
 const token = process.env.DISCORD_TOKEN;
@@ -52,12 +52,13 @@ client.on('messageCreate', (message) => {
         }
         const handle = parts[1];
 
-        message.reply(`${handle}님의 문제 풀이 기록 저장 중...`);
-        getNewlySolved(handle).then((res) => {
-            message.reply(`${handle}님의 푼 문제 저장 완료`);
+        message.reply(`${handle}님의 정보 갱신 중...`);
+        udpateUser(handle).then((res) => {
+            message.reply(`${handle}님의 정보 갱신 완료!`);
         }).catch((err) => {
-            console.log("갱신 실패: ")
-            console.log(err.message)
+            message.reply("갱신 중 문제 발생! 방장에게 간단한 상황설명과 에러 메세지를 보내주세요!")
+            message.reply("error: " + err.message);
+            console.log(err)
         })
     }
 })

@@ -1,6 +1,7 @@
 const fs = require('fs');
 require('dotenv').config();
 const { getJson, getSolvedProblems, firstJoin, getNewlySolved, getUserData } = require('./baekjoon.js');
+const { error } = require('console');
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
 
@@ -25,22 +26,26 @@ async function registerUser(userID) {
         let userData = {}
         userData = {}
 
+        let solvedProblems = await getSolvedProblems(userID) 
         userData["startData"] = {
             "registerDate" : today,
             "solvedCount" : userDataResponse.solvedCount,
-            "tier" : userDataResponse.tier
+            "tier" : userDataResponse.tier,
+            "solved" : solvedProblems
         };
 
         // register all problem solved by the user up until now
-        let solvedProblems = await getSolvedProblems(userID) 
         userData["currentData"] = {}
-        userData["currentData"]["lastUpdated"] = today
         userData["currentData"]["solved"] = solvedProblems 
         userData["currentData"]["solvedCount"] = userDataResponse["solvedCount"]
         userData["currentData"]["tier"] = userDataResponse["tier"] 
-        userData["currentData"]["currentStreak"] = 0 
 
-        writeJSON(userDataPath, userData)    
+        userData["stat"] = {}
+        userData["stat"]["lastUpdated"] = today
+        userData["stat"]["currentStreak"] = 0 
+        userData["stat"]["weeklySolvedCount"] = 0 
+
+        writeJSON(userDataPath, userData)
         return true
     } else {
         return false 
@@ -51,37 +56,38 @@ async function registerUser(userID) {
 async function udpateUser(userID) {
     let userDataPath = USERS_DATA_DIR + `${userID}.json`
     
-    if (fs.existsSync(userDataPath)) { 
-        let today = (new Date()).toJSON();
-        let userDataResponse = await getUserData(userID);
+    if (fs.existsSync(userDataPath)) {
+        let result = getUserData(userID).then((userDataResponse)=> {
+            let currentUserData = readJSON(userDataPath)
 
-        let userData = {}
-        userData = {}
+            if (userDataResponse["solvedCount"] > currentUserData["currentData"]["solvedCount"]) {
+                return getSolvedProblems(userID).then((allSolvedProblems) => {
+                    let today = (new Date()).toJSON();
+                    let newSolvedProblems = allSolvedProblems.filter((problems)=> currentUserData["currentData"]["solved"].indexOf( problems ) < 0) // won't need this until achievements are implemented
 
-        userData["startData"] = {
-            "registerDate" : today,
-            "solvedCount" : userDataResponse.solvedCount,
-            "tier" : userDataResponse.tier
-        };
 
-        // register all problem solved by the user up until now
-        let solvedProblems = await getSolvedProblems(userID) 
-        userData["currentData"] = {}
-        userData["currentData"]["lastUpdated"] = today
-        userData["currentData"]["solved"] = solvedProblems 
-        userData["currentData"]["solvedCount"] = userDataResponse["solvedCount"]
-        userData["currentData"]["tier"] = userDataResponse["tier"] 
-        userData["currentData"]["currentStreak"] = 0 
-        userData["currentData"]["weeklyCount"] = 0 
+                    currentUserData["stat"]["lastUpdated"] = today
+                    currentUserData["stat"]["currentStreak"] += 1 
+                    currentUserData["stat"]["weeklySolvedCount"] =  userDataResponse["solvedCount"] - currentUserData["currentData"]["solvedCount"]
 
-        writeJSON(userDataPath, userData)    
-        return true
+                    currentUserData["currentData"]["solved"] = allSolvedProblems
+                    currentUserData["currentData"]["solvedCount"] = userDataResponse["solvedCount"]
+                    currentUserData["currentData"]["tier"] = userDataResponse["tier"]
+
+                    writeJSON(userDataPath, currentUserData)
+                    return currentUserData
+                })
+            }
+        }) 
+
+        return result
+
     } else {
-        return false 
+        throw Error(`${userID} is not a registered member`) 
     }    
 }
 
-
 module.exports = {
-    registerUser
+    registerUser,
+    udpateUser
 }
