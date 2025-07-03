@@ -62,7 +62,7 @@ const getRecentSolved = async (handle) => {
 /**
  * 해당 유저가 푼 모든 문제를 가져오는 함수
  */
-const getSolvedProblems = async (handle) => {
+async function getSolvedProblems(handle) {
     let page = 1;
     let allProblems = [];
 
@@ -130,27 +130,24 @@ const getNewlySolved = async (handle) => {
     return newlySolved;
 }
 
-/**
- * 문제 추천
- */
-// const recommendProblems = async () => {
-//     const bronze = 0;
-//     const silver = 0;
-//     const gold = 0;
-//     const platinum = 0;
-//     const diamond = 0;
-//     const ruby = 0;
+function getUserData(userID) {
+    let url= "https://solved.ac/api/v3/user/show?" + new URLSearchParams({handle: userID})
 
-//     let problems = [];
-//     for(let i=0;i<bronze;i++) {
-//         const solvedRes = await axios.get(`https://solved.ac/api/v3/search/problem?query=*b+&page=1&sort=random&direction=asc`);
-//         const rank = levelToText(solvedRes.data[0].level);
-//     }
-// }
+    let result = fetch(url, {headers : {
+            "Accept": "application/json", 
+            "x-solvedac-language": "ko" 
+        }}).then((res) => {
+            return res.json()
+        })
+
+    return result
+}
 
 module.exports = {
     getRecentSolved,
     firstJoin,
     getNewlySolved,
-    getJson
+    getJson,
+    getSolvedProblems,
+    getUserData,
 }
