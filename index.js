@@ -1,7 +1,8 @@
 // 1. 주요 클래스 가져오기
 const { Client, Events, GatewayIntentBits } = require('discord.js');
 // const { getJson, getRecentSolved, firstJoin, getNewlySolved } = require('./baekjoon.js');
-const { registerUser, udpateUser } = require("./db.js")
+const { registerUser, updateUser } = require("./db.js");
+const { attendanceManager } = require('./attendenceManager.js');
 require('dotenv').config();
 // console.log(process.env)
 const token = process.env.DISCORD_TOKEN;
@@ -15,8 +16,14 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-    ]
+    ] 
 });
+
+// test to check if I can add custom function to Client Object
+// client.testFunc = function (repeat) {
+//         for (let i = 0 ; i < repeat; i ++)
+//             console.log("hi")
+//     }
 
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -53,8 +60,11 @@ client.on('messageCreate', (message) => {
         const handle = parts[1];
 
         message.reply(`${handle}님의 정보 갱신 중...`);
-        udpateUser(handle).then((res) => {
+        updateUser(handle).then((res) => {
             message.reply(`${handle}님의 정보 갱신 완료!\n You have solved ${res["currentData"]["solvedCount"]} problems so far`);
+            // update streak data
+            // consider refractoring this part of code into observer-pattern-like design
+            attendanceManager.updateAttendance(handle)
         }).catch((err) => {
             message.reply("갱신 중 문제 발생! 방장에게 간단한 상황설명과 에러 메세지를 보내주세요!")
             message.reply("error: " + err.message);
@@ -65,3 +75,8 @@ client.on('messageCreate', (message) => {
 
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행
 client.login(token)
+
+
+// function main() {
+//     let discordBot = new DiscordBot();
+// }

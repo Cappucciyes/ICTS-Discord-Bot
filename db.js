@@ -1,6 +1,6 @@
 const fs = require('fs');
 require('dotenv').config();
-const { getJson, getSolvedProblems, firstJoin, getNewlySolved, getUserData } = require('./baekjoon.js');
+const { getJson, getSolvedProblems, firstJoin, getNewlySolved, getUserData: getUserDataFromDB } = require('./baekjoon.js');
 const { error } = require('console');
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
@@ -20,7 +20,7 @@ async function registerUser(userID) {
     
     if (!fs.existsSync(userDataPath)) { 
         let today = (new Date()).toJSON();
-        let userDataResponse = await getUserData(userID);
+        let userDataResponse = await getUserDataFromDB(userID);
 
         let userData = {}
         userData = {}
@@ -45,6 +45,9 @@ async function registerUser(userID) {
         userData["stat"]["weeklySolvedCount"] = 0 
 
         writeJSON(userDataPath, userData)
+
+
+        // add to weeklyAttendance
         return true
     } else {
         return false 
@@ -52,12 +55,12 @@ async function registerUser(userID) {
 }
 
 
-async function udpateUser(userID) {
+async function updateUser(userID) {
     let userDataPath = USERS_DATA_DIR + `${userID}.json`
     if (fs.existsSync(userDataPath)) {
         // is in nested promise to avoid unnecessary API calls
         // plan to implement so it would only return "changed data" only.
-        let result = getUserData(userID).then((userDataResponse)=> {
+        let result = getUserDataFromDB(userID).then((userDataResponse)=> {
             let currentUserData = readJSON(userDataPath)
             
             // Avoid unnecessary API calls by only checking solvedCount first.
@@ -91,7 +94,30 @@ async function udpateUser(userID) {
     }
 }
 
+function getUserDataFromDB(userID) { 
+    let userDataPath = USERS_DATA_DIR + `${userID}.json`
+
+    if (fs.existsSync(userDataPath)) {
+        return readJSON(userDataPath) 
+    } else {
+        return null
+    }
+}
+
+function getWeeklyAttendanceData() {
+    let dataPath = DATABASE_DIR + 'weeklyAttendance.json'
+
+    return readJSON(dataPath)
+}
+function setWeeklyAttendanceData(updatedInfo) {
+    let dataPath = DATABASE_DIR + 'weeklyAttendance.json'
+    writeJSON(dataPath, updatedInfo)
+}
+
 module.exports = {
     registerUser,
-    udpateUser
+    updateUser,
+    getWeeklyAttendanceData,
+    setWeeklyAttendanceData,
+    getUserDataFromDB
 }
