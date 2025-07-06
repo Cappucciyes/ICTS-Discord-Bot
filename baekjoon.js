@@ -62,7 +62,7 @@ const getRecentSolved = async (handle) => {
 /**
  * 해당 유저가 푼 모든 문제를 가져오는 함수
  */
-async function getSolvedProblems(handle) {
+const getSolvedProblems = async (handle) => {
     let page = 1;
     let allProblems = [];
 
@@ -130,7 +130,52 @@ const getNewlySolved = async (handle) => {
     return newlySolved;
 }
 
-function getUserData(userID) {
+const getRandomProblemByRank = async (rank, count) => {
+    const users = getUsers();
+    const problem = await axios.get(`https://solved.ac/api/v3/search/problem`, {
+        params: {
+            query: "!solved_by:rlatjwls3333 *"+rank,
+            page: 1,
+            sort: "random",
+            direction: "asc"
+        },
+    });
+
+    let problems = [];
+    for(let i=0;i<count && problem.data.items.length;i++) {
+        const problemId = problem.data.items[i].problemId;
+        const title = problem.data.items[i].titleKo;
+        const url = "https://www.acmicpc.net/problem/"+problemId;
+        const rank = levelToText(problem.data.items[i].level);
+        problems.push({
+                    problemId,
+                    title,
+                    url,
+                    rank
+                });
+    }
+    return problems;
+}
+
+/**
+ * 문제 추천
+ */
+const recommendProblems = async () => {
+    const ranks = {
+        b: 5, s: 3, g: 2, p: 0, d: 0, r: 0
+    };
+
+    let problems = [];
+    for(const [rank, count] of Object.entries(ranks)) {
+        if(count>0) {
+            const problem = await getRandomProblemByRank(rank, count);
+            problems.push(...problem);
+        }
+    }
+    return problems;
+}
+
+const getUserData = (userID) => {
     let url= "https://solved.ac/api/v3/user/show?" + new URLSearchParams({handle: userID})
 
     let result = fetch(url, {headers : {
@@ -149,5 +194,6 @@ module.exports = {
     getNewlySolved,
     getJson,
     getSolvedProblems,
+    recommendProblems,
     getUserData,
 }
