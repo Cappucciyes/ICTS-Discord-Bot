@@ -1,10 +1,10 @@
 // 1. 주요 클래스 가져오기
-const { Client, Events, GatewayIntentBits } = require('discord.js');
+const fs = require('fs')
+const path = require('path')
+const { Client, Events, GatewayIntentBits, Collection, MessageFlags } = require('discord.js');
 // const { getJson, getRecentSolved, firstJoin, getNewlySolved } = require('./baekjoon.js');
 const { registerUser, updateUser } = require("./db.js");
-const { attendanceManager } = require('./attendenceManager.js');
 require('dotenv').config();
-// console.log(process.env)
 const token = process.env.DISCORD_TOKEN;
 const serverID = process.env.SERVER_ID;
 
@@ -25,51 +25,51 @@ const client = new Client({
 //             console.log("hi")
 //     }
 
+// adding commands
+client.commands = new Collection();
+
+const commandsFolder = process.env.COMMANDS_DIR
+const commandFiles = fs.readdirSync(commandsFolder).filter(file=> file.endsWith('.js'));
+
+for (const file of commandFiles) {
+    const commandFilePath = commandsFolder + file
+
+    const command = require(commandFilePath)
+    
+    if ('data' in command && 'execute' in command) {
+        client.commands.set(command.data.name, command)
+    } else {
+        console.log(`[WARNING] The command at ${commandFilePath} is missing a required "data" or "execute" property.`)
+    }
+}
+
+// once client is loaded
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
     channel = client.channels.cache.get(serverID)
+
 });
 
-client.on('messageCreate', (message) => {
-    if (message.content.startsWith("/register")) {
-        const parts = message.content.split(" ");
-        if (parts.length < 2) {
-            return message.reply("백준 ID를 입력해주세요. 예: `/register rlatjwls3333`");
-        }
-        const handle = parts[1]
+client.on(Events.InteractionCreate, (interaction)=> {
+    if (!interaction.isChatInputCommand()) return;
 
-        message.reply(`${handle}님의 정보 저장 중...`);
-        registerUser(handle).then((res) => {
-            if (res) {
-                message.reply(`${handle}님의 푼 문제 저장 완료`);
-            } else {
-                message.reply(`${handle}은 이미 등록하셨네요`);
-            }
-        }).catch((err)=>{
-            message.reply("문제 발생! 방장에게 간단한 상황설명과 에러 메세지를 보내주세요!")
-            message.reply("error: " + err.message);
-        })
-    }
+    const command = interaction.client.commands.get(interaction.commandName);
 
-    if (message.content.startsWith("/update")) {
-        const parts = message.content.split(" ");
-        if (parts.length < 2) {
-            return message.reply("백준 ID를 입력해주세요. 예: `/message rlatjwls3333`");
-        }
-        const handle = parts[1];
+	if (!command) {
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
 
-        message.reply(`${handle}님의 정보 갱신 중...`);
-        updateUser(handle).then((res) => {
-            message.reply(`${handle}님의 정보 갱신 완료!\n 이번 주 ${res["stat"]["weeklySolvedCount"]}문제를 푸셨습니다!\n 총 ${res["currentData"]["solvedCount"]} 문제를 푸셨습니다!`);
-            // update streak data
-            // consider refractoring this part of code into observer-pattern-like design
-            attendanceManager.updateAttendance(handle)
-        }).catch((err) => {
-            message.reply("갱신 중 문제 발생! 방장에게 간단한 상황설명과 에러 메세지를 보내주세요!")
-            message.reply("error: " + err.message);
-            console.log(err)
-        })
-    }
+	try {
+		command.execute(interaction).catch((err)=>{console.log(err.message)})
+	} catch (error) {
+		console.error(error);
+		if (interaction.replied || interaction.deferred) {
+			interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+		} else {
+			interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+		}
+	}
 })
 
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행

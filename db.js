@@ -1,6 +1,6 @@
 const fs = require('fs');
 require('dotenv').config();
-const { getJson, getSolvedProblems, firstJoin, getNewlySolved, getUserData: getUserDataFromDB } = require('./baekjoon.js');
+const { getJson, getSolvedProblems, firstJoin, getNewlySolved, getUserData } = require('./baekjoon.js');
 const { error } = require('console');
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
@@ -20,7 +20,7 @@ async function registerUser(userID) {
     
     if (!fs.existsSync(userDataPath)) { 
         let today = (new Date()).toJSON();
-        let userDataResponse = await getUserDataFromDB(userID);
+        let userDataResponse = await getUserData(userID);
 
         let userData = {}
         userData = {}
@@ -45,9 +45,8 @@ async function registerUser(userID) {
         userData["stat"]["weeklySolvedCount"] = 0 
 
         writeJSON(userDataPath, userData)
-
-
         // add to weeklyAttendance
+        attendanceManager.addMember(userID)
         return true
     } else {
         return false 
@@ -60,7 +59,7 @@ async function updateUser(userID) {
     if (fs.existsSync(userDataPath)) {
         // is in nested promise to avoid unnecessary API calls
         // plan to implement so it would only return "changed data" only.
-        let result = getUserDataFromDB(userID).then((userDataResponse)=> {
+        let result = getUserData(userID).then((userDataResponse)=> {
             let currentUserData = readJSON(userDataPath)
             
             // Avoid unnecessary API calls by only checking solvedCount first.
@@ -81,6 +80,10 @@ async function updateUser(userID) {
                     currentUserData["currentData"]["tier"] = userDataResponse["tier"]
 
                     writeJSON(userDataPath, currentUserData)
+
+                    // update attendance
+                    // consider refractoring this part of code into observer-pattern-like design
+                    attendanceManager.updateAttendance(userID)
                     return currentUserData
                 })
             } else {
@@ -114,10 +117,49 @@ function setWeeklyAttendanceData(updatedInfo) {
     writeJSON(dataPath, updatedInfo)
 }
 
+const attendanceManager = {
+    readWeeklyAttendance : (userID)=> {
+        let weeklyAttendance = getWeeklyAttendanceData() 
+        return weeklyAttendance[userID]
+    },
+    updateAttendance : (userID)=> {
+        let weeklyAttendance = getWeeklyAttendanceData() 
+
+        if (!weeklyAttendance.hasOwnProperty(userID)) {
+            console.error(`${userID} does not exists in weeklyAttendance`)
+            return false
+        } else if (!weeklyAttendance[userID]) {
+            // get user Data
+            let userData = getUserDataFromDB(userID);
+            // check if weeklySolvedCount is more 3 or greater
+            if(userData.stat.weeklySolvedCount >= 3) {
+                weeklyAttendance[userID] = true
+
+                setWeeklyAttendanceData(weeklyAttendance)
+            } 
+        } 
+
+        return true
+    },
+    addMember : (userID) => {
+        let weeklyAttendance = getWeeklyAttendanceData() 
+
+        if (weeklyAttendance.hasOwnProperty(userID)) {
+            console.error(`${userID} already exists in weeklyAttendance`)
+            return false
+        } else {
+            weeklyAttendance[userID] = false 
+            setWeeklyAttendanceData(weeklyAttendance)
+            return true
+        } 
+    }
+}
+
 module.exports = {
     registerUser,
     updateUser,
     getWeeklyAttendanceData,
     setWeeklyAttendanceData,
-    getUserDataFromDB
+    getUserDataFromDB,
+    attendanceManager
 }
