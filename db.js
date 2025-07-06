@@ -4,6 +4,7 @@ const { getJson, getSolvedProblems, firstJoin, getNewlySolved, getUserData } = r
 const { error } = require('console');
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
+process.env.TZ = "Asia/Seoul"
 
 function readJSON(path) {
     const fileData = fs.readFileSync(path, "utf-8");
@@ -68,6 +69,7 @@ async function updateUser(userID) {
             if (userDataResponse["solvedCount"] > currentUserData["currentData"]["solvedCount"]) {
                 return getSolvedProblems(userID).then((allSolvedProblems) => {
                     let today = (new Date()).toJSON();
+                    console.log(today)
                     let newSolvedProblems = allSolvedProblems.filter((problems)=> currentUserData["currentData"]["solved"].indexOf( problems ) < 0) // won't need this until achievements are implemented
 
 
@@ -84,6 +86,7 @@ async function updateUser(userID) {
                     // update attendance
                     // consider refractoring this part of code into observer-pattern-like design
                     attendanceManager.updateAttendance(userID)
+                    console.log(`updated: ${userID}`)
                     return currentUserData
                 })
             } else {
