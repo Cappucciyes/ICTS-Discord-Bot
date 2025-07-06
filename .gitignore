@@ -4,4 +4,4 @@ config.json
 db.json
 changes.json
 
-database/*
+database/**/*.json

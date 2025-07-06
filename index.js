@@ -30,7 +30,6 @@ client.once(Events.ClientReady, readyClient => {
     channel = client.channels.cache.get(serverID)
 });
 
-// 4. 누군가 ping을 작성하면 pong으로 답장한다.
 client.on('messageCreate', (message) => {
     if (message.content.startsWith("/register")) {
         const parts = message.content.split(" ");
@@ -61,7 +60,7 @@ client.on('messageCreate', (message) => {
 
         message.reply(`${handle}님의 정보 갱신 중...`);
         updateUser(handle).then((res) => {
-            message.reply(`${handle}님의 정보 갱신 완료!\n You have solved ${res["currentData"]["solvedCount"]} problems so far`);
+            message.reply(`${handle}님의 정보 갱신 완료!\n 이번 주 ${res["stat"]["weeklySolvedCount"]}문제를 푸셨습니다!\n 총 ${res["currentData"]["solvedCount"]} 문제를 푸셨습니다!`);
             // update streak data
             // consider refractoring this part of code into observer-pattern-like design
             attendanceManager.updateAttendance(handle)
