@@ -1,9 +1,10 @@
 // 1. 주요 클래스 가져오기
 const fs = require('fs')
 const path = require('path')
+const cron = require('node-cron')
 const { Client, Events, GatewayIntentBits, Collection, MessageFlags } = require('discord.js');
+const { getAllUserID, updateUser } = require('./db');
 // const { getJson, getRecentSolved, firstJoin, getNewlySolved } = require('./baekjoon.js');
-const { registerUser, updateUser } = require("./db.js");
 require('dotenv').config();
 const token = process.env.DISCORD_TOKEN;
 const serverID = process.env.SERVER_ID;
@@ -47,7 +48,6 @@ for (const file of commandFiles) {
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
     channel = client.channels.cache.get(serverID)
-
 });
 
 client.on(Events.InteractionCreate, (interaction)=> {
@@ -72,10 +72,17 @@ client.on(Events.InteractionCreate, (interaction)=> {
 	}
 })
 
+
+// schedule to update user everyday at 7 AM
+cron.schedule('* * * * *', () => {
+    let toUpdate = getAllUserID();
+    for (let userID of toUpdate) {
+        console.log(`updating ${userID}\n`)
+        updateUser(userID)
+    }
+}, {
+    timezone: "Asia/Seoul"
+});
+
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행
 client.login(token)
-
-
-// function main() {
-//     let discordBot = new DiscordBot();
-// }

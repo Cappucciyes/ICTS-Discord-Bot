@@ -107,6 +107,19 @@ function getUserDataFromDB(userID) {
     }
 }
 
+function getAllUserID() {
+    let userDataPath = USERS_DATA_DIR;
+    let userNameList = fs.readdirSync(userDataPath ).filter(file=> file.endsWith('.json'));
+    
+    let result = []
+    for (let file of userNameList) {
+        let parsed = file.split(".")
+        result.push(parsed[0])
+    }
+
+    return result
+}
+
 function getWeeklyAttendanceData() {
     let dataPath = DATABASE_DIR + 'weeklyAttendance.json'
 
@@ -161,5 +174,6 @@ module.exports = {
     getWeeklyAttendanceData,
     setWeeklyAttendanceData,
     getUserDataFromDB,
+    getAllUserID,
     attendanceManager
 }
