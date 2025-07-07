@@ -1,10 +1,8 @@
 const fs = require('fs');
 require('dotenv').config();
-const { getJson, getSolvedProblems, firstJoin, getNewlySolved, getUserData } = require('./baekjoon.js');
-const { error } = require('console');
+const {  getSolvedProblems, getUserData } = require('./baekjoon.js');
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
-process.env.TZ = "Asia/Seoul"
 
 function readJSON(path) {
     const fileData = fs.readFileSync(path, "utf-8");
@@ -14,6 +12,10 @@ function readJSON(path) {
 
 function writeJSON(path, data){
     fs.writeFileSync(path, JSON.stringify(data,null, 4));
+}
+
+function toLocalTimeJSON(date) {
+    
 }
 
 async function registerUser(userID) {
@@ -72,10 +74,11 @@ async function updateUser(userID) {
                     console.log(today)
                     let newSolvedProblems = allSolvedProblems.filter((problems)=> currentUserData["currentData"]["solved"].indexOf( problems ) < 0) // won't need this until achievements are implemented
 
+                    
 
                     currentUserData["stat"]["lastUpdated"] = today
                     currentUserData["stat"]["currentStreak"] += 1 
-                    currentUserData["stat"]["weeklySolvedCount"] =  userDataResponse["solvedCount"] - currentUserData["currentData"]["solvedCount"]
+                    currentUserData["stat"]["weeklySolvedCount"] += userDataResponse["solvedCount"] - currentUserData["currentData"]["solvedCount"]
 
                     currentUserData["currentData"]["solved"] = allSolvedProblems
                     currentUserData["currentData"]["solvedCount"] = userDataResponse["solvedCount"]
