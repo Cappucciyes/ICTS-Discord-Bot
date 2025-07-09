@@ -8,12 +8,17 @@ module.exports = {
         .addStringOption(option =>
             option.setName("user_id")
                 .setDescription("사용자 백준 아이디")
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName("user_name")
+                .setDescription("사용자 이름")
                 .setRequired(true)), 
 
     async execute(interaction) {
         const handle = interaction.options.getString("user_id");
+        const name = interaction.options.getString("user_name");
         await interaction.reply({ content: `${handle}님의 정보 저장 중...`, flags: MessageFlags.Ephemeral })
-        registerUser(handle).then((res) => {
+        registerUser(handle, name).then((res) => {
             if (res) {
                 interaction.followUp({ content: `${handle}님의 푼 문제 저장 완료`, flags: MessageFlags.Ephemeral });
             } else {

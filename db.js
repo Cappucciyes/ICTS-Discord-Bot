@@ -1,6 +1,7 @@
 const fs = require('fs');
 require('dotenv').config();
 const {  getSolvedProblems, getUserData } = require('./baekjoon.js');
+const { start } = require('repl');
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
 
@@ -14,15 +15,19 @@ function writeJSON(path, data){
     fs.writeFileSync(path, JSON.stringify(data,null, 4));
 }
 
-function toLocalTimeJSON(date) {
-    
-}
-
-async function registerUser(userID) {
+async function registerUser(userID, name) {
     let userDataPath = USERS_DATA_DIR + `${userID}.json`
     
     if (!fs.existsSync(userDataPath)) { 
-        let today = (new Date()).toJSON();
+        let today = new Date();
+
+        // because streaks gets updated at least every 6:00AM by the system
+        if (today.getHours() < 6){
+            today.setDate(today.getDate() - 1) 
+        }
+        let lastUpdateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 6);
+        console.log(lastUpdateTime.toString())
+
         let userDataResponse = await getUserData(userID);
 
         let userData = {}
@@ -30,6 +35,7 @@ async function registerUser(userID) {
 
         let solvedProblems = await getSolvedProblems(userID) 
         userData["startData"] = {
+            "name" : name,
             "registerDate" : today,
             "solvedCount" : userDataResponse.solvedCount,
             "tier" : userDataResponse.tier,
@@ -41,9 +47,10 @@ async function registerUser(userID) {
         userData["currentData"]["solved"] = solvedProblems 
         userData["currentData"]["solvedCount"] = userDataResponse["solvedCount"]
         userData["currentData"]["tier"] = userDataResponse["tier"] 
+        userData["currentData"]["longestStreak"] = 0 
 
         userData["stat"] = {}
-        userData["stat"]["lastUpdated"] = today
+        userData["stat"]["lastSolvedDate"] = lastUpdateTime.toString();
         userData["stat"]["currentStreak"] = 0 
         userData["stat"]["weeklySolvedCount"] = 0 
 
@@ -57,7 +64,7 @@ async function registerUser(userID) {
 }
 
 
-async function updateUser(userID) {
+async function updateUser(userID, updateTime) {
     let userDataPath = USERS_DATA_DIR + `${userID}.json`
     if (fs.existsSync(userDataPath)) {
         // is in nested promise to avoid unnecessary API calls
@@ -70,20 +77,38 @@ async function updateUser(userID) {
             // else it won't update anything
             if (userDataResponse["solvedCount"] > currentUserData["currentData"]["solvedCount"]) {
                 return getSolvedProblems(userID).then((allSolvedProblems) => {
-                    let today = (new Date()).toJSON();
-                    console.log(today)
+                    console.log(updateTime)
                     let newSolvedProblems = allSolvedProblems.filter((problems)=> currentUserData["currentData"]["solved"].indexOf( problems ) < 0) // won't need this until achievements are implemented
 
-                    
+                    // 1. update all solved questions
 
-                    currentUserData["stat"]["lastUpdated"] = today
-                    currentUserData["stat"]["currentStreak"] += 1 
+                    // 2. update weekly Solved
                     currentUserData["stat"]["weeklySolvedCount"] += userDataResponse["solvedCount"] - currentUserData["currentData"]["solvedCount"]
-
+                    
                     currentUserData["currentData"]["solved"] = allSolvedProblems
                     currentUserData["currentData"]["solvedCount"] = userDataResponse["solvedCount"]
                     currentUserData["currentData"]["tier"] = userDataResponse["tier"]
+                    // 3. update daily streak
+                    // saved date's time is always set to 6AM
+                    let streakLowerBound = new Date(currentUserData["stat"]["lastSolvedDate"]) 
+                    let streakUpperBound = new Date(currentUserData["stat"]["lastSolvedDate"])
+                    streakUpperBound.setDate(streakLowerBound.getDate() + 1)
 
+                    // if within range of last updated, next day 6:00AM, update streak
+                    if (streakLowerBound<= updateTime &&  updateTime <= streakUpperBound) {
+                        currentUserData["stat"]["currentStreak"] += 1 
+                    } else if (streakUpperBound <= updateTime) { // if after 6:00AM next day, reset streak 
+                        currentUserData["stat"]["currentStreak"] = 1
+                    }
+
+                    let newDate = new Date(updateTime)
+                    if (newDate.getHours() < 6){
+                        newDate.setDate(newDate.getDate() - 1) 
+                    }
+                    let lastUpdateTime = new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), 6);
+                    lastUpdateTime.setDate(newDate.getDate() + 1)
+
+                    currentUserData["stat"]["lastSolvedDate"] = lastUpdateTime.toString()
                     writeJSON(userDataPath, currentUserData)
 
                     // update attendance
@@ -93,6 +118,15 @@ async function updateUser(userID) {
                     return currentUserData
                 })
             } else {
+                let streakLowerBound = new Date(currentUserData["stat"]["lastSolvedDate"]) 
+                let streakUpperBound = new Date(currentUserData["stat"]["lastSolvedDate"])
+                streakUpperBound.setDate(streakLowerBound.getDate() + 1)
+
+                if (updateTime >= streakUpperBound) {
+                    currentUserData["stat"]["currentStreak"] = 0
+                }
+
+                writeJSON(userDataPath, currentUserData)
                 return currentUserData
             }
         }) 

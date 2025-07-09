@@ -72,13 +72,17 @@ client.on(Events.InteractionCreate, (interaction)=> {
 	}
 })
 
-// schedule to update user everyday at 9 AM
-cron.schedule('0 9 * * *', () => {
+// schedule to update user everyday at 6AM
+cron.schedule('0 6 * * *', () => {
+    let updatingTime = new Date();
+    let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 6)
     let toUpdate = getAllUserID();
     for (let userID of toUpdate) {
         console.log(`updating ${userID}\n`)
-        updateUser(userID)
+        updateUser(userID, updatingTimeFixed)
     }
+}, {
+    timezone: "Asia/Seoul"
 });
 
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행

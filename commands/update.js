@@ -13,7 +13,8 @@ module.exports = {
     async execute(interaction) {
         const handle = interaction.options.getString("user_id");
         await interaction.reply({ content: `${handle}님의 정보 갱신 중...`, flags: MessageFlags.Ephemeral })
-        updateUser(handle).then((res) => {
+        let updatingTime = new Date();
+        updateUser(handle, updatingTime).then((res) => {
             if (res) {
                 interaction.followUp(`${handle}님의 정보 갱신 완료!\n 이번 주 ${res["stat"]["weeklySolvedCount"]}문제를 푸셨습니다!\n 총 ${res["currentData"]["solvedCount"]} 문제를 푸셨습니다!`);
             } else {
