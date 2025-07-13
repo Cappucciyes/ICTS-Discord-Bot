@@ -88,7 +88,7 @@ cron.schedule('59 30 1 * * *', () => {
         let weeklyAttendance = getWeeklyAttendanceData()
         let weeklyAttendanceByHandle = userList.filter((user) => {return weeklyAttendance[user]})
         let weeklyAttendanceByName= []
-        for (let handle in weeklyAttendanceByHandle) {
+        for (let handle of weeklyAttendanceByHandle) {
             let userData = getUserDataFromDB(handle);
             weeklyAttendanceByName.push(userData['startData']['name'])
         }
