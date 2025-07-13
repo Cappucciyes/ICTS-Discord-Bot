@@ -2,6 +2,7 @@ const fs = require('fs');
 require('dotenv').config();
 const {  getSolvedProblems, getUserData } = require('./baekjoon.js');
 const { start } = require('repl');
+const { useDebugValue } = require('react');
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
 
@@ -89,24 +90,22 @@ async function updateUser(userID, updateTime) {
                     currentUserData["currentData"]["solvedCount"] = userDataResponse["solvedCount"]
                     currentUserData["currentData"]["tier"] = userDataResponse["tier"]
                     // 3. update daily streak
-                    // saved date's time is always set to 6AM
-                    let streakLowerBound = new Date(currentUserData["stat"]["lastSolvedDate"]) 
-                    let streakUpperBound = new Date(currentUserData["stat"]["lastSolvedDate"])
-                    streakUpperBound.setDate(streakLowerBound.getDate() + 1)
 
-                    // if within range of last updated, next day 6:00AM, update streak
-                    if (streakLowerBound<= updateTime &&  updateTime <= streakUpperBound) {
+                    let lastSolvedDate = new Date(currentUserData["stat"]["lastSolvedDate"])
+                    let nextDay = new Date(currentUserData["stat"]["lastSolvedDate"])
+                    let twoDaysLater = new Date(currentUserData["stat"]["lastSolvedDate"])
+
+                    nextDay.setDate(lastSolvedDate.getDate() + 1)
+                    twoDaysLater.setDate(lastSolvedDate.getDate() + 2)
+
+                    if (nextDay <= updateTime && updateTime < twoDaysLater) {
                         currentUserData["stat"]["currentStreak"] += 1 
-                    } else if (streakUpperBound <= updateTime) { // if after 6:00AM next day, reset streak 
-                        currentUserData["stat"]["currentStreak"] = 1
+                    } else if (twoDaysLater <= updateTime) {
+                        currentUserData["stat"]["currentStreak"] = 1 
                     }
 
                     let newDate = new Date(updateTime)
-                    if (newDate.getHours() < 6){
-                        newDate.setDate(newDate.getDate() - 1) 
-                    }
-                    let lastUpdateTime = new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), 6);
-                    lastUpdateTime.setDate(newDate.getDate() + 1)
+                    let lastUpdateTime = new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
 
                     currentUserData["stat"]["lastSolvedDate"] = lastUpdateTime.toString()
                     writeJSON(userDataPath, currentUserData)
@@ -118,11 +117,16 @@ async function updateUser(userID, updateTime) {
                     return currentUserData
                 })
             } else {
-                let streakLowerBound = new Date(currentUserData["stat"]["lastSolvedDate"]) 
-                let streakUpperBound = new Date(currentUserData["stat"]["lastSolvedDate"])
-                streakUpperBound.setDate(streakLowerBound.getDate() + 1)
+                let lastSolvedDate = new Date(currentUserData["stat"]["lastSolvedDate"])
+                let nextDay = new Date(currentUserData["stat"]["lastSolvedDate"])
+                let twoDaysLater = new Date(currentUserData["stat"]["lastSolvedDate"])
+                nextDay.setDate(lastSolvedDate.getDate() + 1)
+                twoDaysLater.setDate(lastSolvedDate.getDate() + 2)
 
-                if (updateTime >= streakUpperBound) {
+                if (updateTime >= twoDaysLater) {
+                    if (currentUserData["currentData"]["longestStreak"] < currentUserData["stat"]["currentStreak"] ) {
+                        currentUserData["currentData"]["longestStreak"] = currentUserData["stat"]["currentStreak"]
+                    }
                     currentUserData["stat"]["currentStreak"] = 0
                 }
 
@@ -149,7 +153,7 @@ function getUserDataFromDB(userID) {
 
 function getAllUserID() {
     let userDataPath = USERS_DATA_DIR;
-    let userNameList = fs.readdirSync(userDataPath ).filter(file=> file.endsWith('.json'));
+    let userNameList = fs.readdirSync(userDataPath).filter(file=> file.endsWith('.json'));
     
     let result = []
     for (let file of userNameList) {
@@ -194,6 +198,19 @@ const attendanceManager = {
 
         return true
     },
+    resetWeeklyAttendance : (userID) => {
+        let weeklyAttendance = getWeeklyAttendanceData() 
+
+        if (!weeklyAttendance.hasOwnProperty(userID)) {
+            console.error(`${userID} does not exists in weeklyAttendance`)
+            return false
+        } else if (!weeklyAttendance[userID]) {
+            weeklyAttendance[userID] = false 
+            setWeeklyAttendanceData(weeklyAttendance) 
+        } 
+
+        return true   
+    },
     addMember : (userID) => {
         let weeklyAttendance = getWeeklyAttendanceData() 
 
@@ -210,6 +227,7 @@ const attendanceManager = {
 
 module.exports = {
     registerUser,
+    writeJSON,
     updateUser,
     getWeeklyAttendanceData,
     setWeeklyAttendanceData,

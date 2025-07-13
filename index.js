@@ -3,11 +3,12 @@ const fs = require('fs')
 const path = require('path')
 const cron = require('node-cron')
 const { Client, Events, GatewayIntentBits, Collection, MessageFlags } = require('discord.js');
-const { getAllUserID, updateUser } = require('./db');
+const { getAllUserID, updateUser, getUserDataFromDB, writeJSON, getWeeklyAttendanceData } = require('./db');
 // const { getJson, getRecentSolved, firstJoin, getNewlySolved } = require('./baekjoon.js');
 require('dotenv').config();
 const token = process.env.DISCORD_TOKEN;
 const serverID = process.env.SERVER_ID;
+const channelID = process.env.CHANNEL_ID
 
 let channel
 
@@ -73,17 +74,47 @@ client.on(Events.InteractionCreate, (interaction)=> {
 })
 
 // schedule to update user everyday at 6AM
-cron.schedule('0 6 * * *', () => {
+cron.schedule('59 59 23 * * *', () => {
     let updatingTime = new Date();
-    let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 6)
+    let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 23, 59,59)
     let toUpdate = getAllUserID();
     for (let userID of toUpdate) {
         console.log(`updating ${userID}\n`)
         updateUser(userID, updatingTimeFixed)
     }
+
+    // on sundays, make reports and reset streak
+    if (updatingTime.getDay() === 0) {
+        let userList = getAllUserID();
+        let userDataPath = process.env.USERS_DATA_DIR
+        for (let user in userList) {
+            let userData = getUserDataFromDB(user);
+            userData["stat"]["weeklySolvedCount"] = 0
+
+            writeJSON(userDataPath + `${user}.json`, userData);
+        }
+
+        //weekly attendance
+        let weeklyAttendance = getWeeklyAttendanceData()
+        let weeklyAttendanceByHandle = userList.filter((user) => {return weeklyAttendance[user]})
+        let weeklyAttendanceByName=[]
+        for (let handle in weeklyAttendanceByHandle) {
+            let userData = getUserDataFromDB(handle);
+            weeklyAttendanceByName.push(userData['startData']['name'])
+        }
+
+        let message = "이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "모두 수고하셨습니다!\n다음 주도 화이팅!"
+
+        client.channels.fetch(channelID).then((foundChannel)=>{
+            foundChannel.send({content: message})
+        }).catch((err) => {
+            console.log("failed to send weekly Reports: " + err)
+        })
+    }
 }, {
     timezone: "Asia/Seoul"
 });
+
 
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행
 client.login(token)
