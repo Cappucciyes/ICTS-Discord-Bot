@@ -70,9 +70,9 @@ client.on(Events.InteractionCreate, (interaction)=> {
 })
 
 // schedule to update user everyday at 6AM
-cron.schedule('59 30 1 * * *', () => {
+cron.schedule('59 59 23 * * *', () => {
     let updatingTime = new Date();
-    let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 23, 59,59)
+    let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 23, 59, 59)
     let toUpdate = getAllUserID();
     for (let userID of toUpdate) {
         console.log(`updating ${userID}\n`)
@@ -94,7 +94,7 @@ cron.schedule('59 30 1 * * *', () => {
         }
 
         weeklyAttendanceByName.sort()
-        let message = "이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "모두 수고하셨습니다!\n다음 주도 화이팅!"
+        let message = "이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "\n\n모두 수고하셨습니다!\n다음 주도 화이팅!"
 
         client.channels.fetch(channelID).then((foundChannel)=>{
             foundChannel.send({content: message})
