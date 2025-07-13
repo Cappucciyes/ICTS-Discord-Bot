@@ -84,25 +84,20 @@ cron.schedule('59 59 23 * * *', () => {
     }
 
     // on sundays, make reports and reset streak
-    if (updatingTime.getDay() === 0) {
+    if (updatingTime.getDay() === 0) { 
+        //weekly attendance
         let userList = getAllUserID();
         let userDataPath = process.env.USERS_DATA_DIR
-        for (let user in userList) {
-            let userData = getUserDataFromDB(user);
-            userData["stat"]["weeklySolvedCount"] = 0
 
-            writeJSON(userDataPath + `${user}.json`, userData);
-        }
-
-        //weekly attendance
         let weeklyAttendance = getWeeklyAttendanceData()
         let weeklyAttendanceByHandle = userList.filter((user) => {return weeklyAttendance[user]})
-        let weeklyAttendanceByName=[]
+        let weeklyAttendanceByName= []
         for (let handle in weeklyAttendanceByHandle) {
             let userData = getUserDataFromDB(handle);
             weeklyAttendanceByName.push(userData['startData']['name'])
         }
 
+        weeklyAttendanceByName.sort()
         let message = "이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "모두 수고하셨습니다!\n다음 주도 화이팅!"
 
         client.channels.fetch(channelID).then((foundChannel)=>{
@@ -110,6 +105,13 @@ cron.schedule('59 59 23 * * *', () => {
         }).catch((err) => {
             console.log("failed to send weekly Reports: " + err)
         })
+ 
+        for (let user in userList) {
+            let userData = getUserDataFromDB(user);
+            userData["stat"]["weeklySolvedCount"] = 0
+
+            writeJSON(userDataPath + `${user}.json`, userData);
+        }
     }
 }, {
     timezone: "Asia/Seoul"
