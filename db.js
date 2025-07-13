@@ -1,8 +1,6 @@
 const fs = require('fs');
 require('dotenv').config();
 const {  getSolvedProblems, getUserData } = require('./baekjoon.js');
-const { start } = require('repl');
-const { useDebugValue } = require('react');
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
 
