@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "deploy-command": "node deploy-commands.js",
-    "prod-start": "pm2 start \"npm run start\" --name \"ICTS-Discord-Bot\" --time -- --log ./logs/out.log"
+    "prod-start": "pm2 start \"npm run start\" --name \"ICTS-Discord-Bot\" --time --log ./logs/out.log"
   },
   "author": "",
   "license": "ISC",
