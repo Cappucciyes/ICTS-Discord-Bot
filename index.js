@@ -21,13 +21,6 @@ const client = new Client({
     ] 
 });
 
-// test to check if I can add custom function to Client Object
-// client.testFunc = function (repeat) {
-//         for (let i = 0 ; i < repeat; i ++)
-//             console.log("hi")
-//     }
-
-// adding commands
 client.commands = new Collection();
 
 const commandsFolder = process.env.COMMANDS_DIR
@@ -71,10 +64,13 @@ client.on(Events.InteractionCreate, (interaction)=> {
 			interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 		}
 	}
+
+
+
 })
 
 // schedule to update user everyday at 6AM
-cron.schedule('59 59 23 * * *', () => {
+cron.schedule('59 30 1 * * *', () => {
     let updatingTime = new Date();
     let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 23, 59,59)
     let toUpdate = getAllUserID();
@@ -106,7 +102,7 @@ cron.schedule('59 59 23 * * *', () => {
             console.log("failed to send weekly Reports: " + err)
         })
  
-        for (let user in userList) {
+        for (let user of userList) {
             let userData = getUserDataFromDB(user);
             userData["stat"]["weeklySolvedCount"] = 0
 
@@ -120,3 +116,4 @@ cron.schedule('59 59 23 * * *', () => {
 
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행
 client.login(token)
+
