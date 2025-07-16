@@ -1,4 +1,4 @@
-const {SlashCommandBuilder, MessageFlags} = require("discord.js")
+const {SlashCommandBuilder, MessageFlags, PermissionsBitField} = require("discord.js")
 const {updateUser, attendanceManager} =require("./../db.js")
 
 module.exports = {
