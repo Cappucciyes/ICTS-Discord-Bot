@@ -90,7 +90,7 @@ cron.schedule('59 59 23 * * *', () => {
         let weeklyAttendanceByName= []
         for (let handle of weeklyAttendanceByHandle) {
             let userData = getUserDataFromDB(handle);
-            weeklyAttendanceByName.push(userData['startData']['name'])
+            weeklyAttendanceByName.push(`${userData['startData']['name']}: 총 ${userData['stat']['weeklySolvedCount']} 문제`)
         }
 
         weeklyAttendanceByName.sort()
