@@ -5,6 +5,7 @@ const cron = require('node-cron')
 const { Client, Events, GatewayIntentBits, Collection, MessageFlags } = require('discord.js');
 const { db } = require("./components/db.js")
 const {attendanceManager} = require("./components/attendanceManager.js")
+const {writeJSON, readJSON} = require("./utils/utilsIO.js")
 // const { getJson, getRecentSolved, firstJoin, getNewlySolved } = require('./baekjoon.js');
 require('dotenv').config();
 const token = process.env.DISCORD_TOKEN;
@@ -92,7 +93,7 @@ cron.schedule('59 59 23 * * *', () => {
         }
 
         weeklyAttendanceByName.sort()
-        let message = "이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "\n\n모두 수고하셨습니다!\n다음 주도 화이팅!"
+        let message = "refactor test : 이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "\n\n모두 수고하셨습니다!\n다음 주도 화이팅!"
 
         client.channels.fetch(channelID).then((foundChannel)=>{
             foundChannel.send({content: message})
@@ -105,7 +106,9 @@ cron.schedule('59 59 23 * * *', () => {
             userData["stat"]["weeklySolvedCount"] = 0
 
             writeJSON(userDataPath + `${user}.json`, userData);
+            attendanceManager.resetWeeklyAttendance(user);
         }
+
     }
 }, {
     timezone: "Asia/Seoul"

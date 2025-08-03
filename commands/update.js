@@ -1,5 +1,5 @@
 const {SlashCommandBuilder, MessageFlags, PermissionsBitField} = require("discord.js")
-const {updateUser, attendanceManager} =require("./../db.js")
+const {db} = require("./../components/db.js")
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,7 +18,7 @@ module.exports = {
         if (interactionUser.permissions.has(PermissionsBitField.Flags.Administrator)) {
             await interaction.reply({ content: `${handle}님의 정보 갱신 중...`, flags: MessageFlags.Ephemeral })
             let updatingTime = new Date();
-            updateUser(handle, updatingTime).then((res) => {
+            db.updateUser(handle, updatingTime).then((res) => {
                 if (res) {
                     interaction.followUp(`${handle}님의 정보 갱신 완료!\n 이번 주 ${res["stat"]["weeklySolvedCount"]}문제를 푸셨습니다!\n 총 ${res["currentData"]["solvedCount"]} 문제를 푸셨습니다!`);
                 } else {

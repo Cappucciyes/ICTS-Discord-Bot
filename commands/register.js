@@ -1,5 +1,5 @@
 const {SlashCommandBuilder, MessageFlags, PermissionsBitField } = require("discord.js")
-const {registerUser} =require("./../db.js")
+const {db} =require("./../components/db.js")
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -22,7 +22,7 @@ module.exports = {
 
         if (interactionUser.permissions.has(PermissionsBitField.Flags.Administrator)) {
             await interaction.reply({ content: `${handle}님의 정보 저장 중...`, flags: MessageFlags.Ephemeral })
-            registerUser(handle, name).then((res) => {
+            db.registerUser(handle, name).then((res) => {
                 if (res) {
                     interaction.followUp({ content: `${handle}님의 푼 문제 저장 완료`, flags: MessageFlags.Ephemeral });
                 } else {

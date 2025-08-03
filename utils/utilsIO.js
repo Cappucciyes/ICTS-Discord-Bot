@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 function readJSON(path) {
     const fileData = fs.readFileSync(path, "utf-8");
     const savedData = JSON.parse(fileData);

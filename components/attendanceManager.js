@@ -1,13 +1,12 @@
 const {writeJSON, readJSON} = require("../utils/utilsIO.js")
-const eventHandler = require("../utils/eventHandler.js")
+const {eventHandler }= require("../utils/eventHandler.js")
 const DATABASE_DIR= process.env.DATABASE_DIR
 const USERS_DATA_DIR=process.env.USERS_DATA_DIR
 
 class AttendanceManager {
     constructor () {
-
         this.attendancePath = DATABASE_DIR + 'weeklyAttendance.json'        
-
+        
         eventHandler.on("user:added", (newUser) => {
             let userID = newUser.userID;
 
@@ -35,12 +34,12 @@ class AttendanceManager {
     // changing data
 
     resetWeeklyAttendance (userID) {
-        let weeklyAttendance = getWeeklyAttendanceData() 
+        let weeklyAttendance = this.getWeeklyAttendanceData() 
 
         if (!weeklyAttendance.hasOwnProperty(userID)) {
             console.error(`${userID} does not exists in weeklyAttendance`)
             return false
-        } else if (!weeklyAttendance[userID]) {
+        } else if (weeklyAttendance[userID]) {
             weeklyAttendance[userID] = false 
             this.setWeeklyAttendanceData(weeklyAttendance) 
         } 
