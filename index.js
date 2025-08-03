@@ -3,7 +3,8 @@ const fs = require('fs')
 const path = require('path')
 const cron = require('node-cron')
 const { Client, Events, GatewayIntentBits, Collection, MessageFlags } = require('discord.js');
-const { getAllUserID, updateUser, getUserDataFromDB, writeJSON, getWeeklyAttendanceData } = require('./db');
+const { db } = require("./components/db.js")
+const {attendanceManager} = require("./components/attendanceManager.js")
 // const { getJson, getRecentSolved, firstJoin, getNewlySolved } = require('./baekjoon.js');
 require('dotenv').config();
 const token = process.env.DISCORD_TOKEN;
@@ -25,7 +26,7 @@ client.commands = new Collection();
 
 const commandsFolder = process.env.COMMANDS_DIR
 const commandFiles = fs.readdirSync(commandsFolder).filter(file=> file.endsWith('.js'));
-
+// loading commands to the  client
 for (const file of commandFiles) {
     const commandFilePath = commandsFolder + file
 
@@ -64,32 +65,29 @@ client.on(Events.InteractionCreate, (interaction)=> {
 			interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 		}
 	}
-
-
-
 })
 
 // schedule to update user everyday at 6AM
 cron.schedule('59 59 23 * * *', () => {
     let updatingTime = new Date();
     let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 23, 59, 59)
-    let toUpdate = getAllUserID();
+    let toUpdate = db.getAllUserID();
     for (let userID of toUpdate) {
         console.log(`updating ${userID}\n`)
-        updateUser(userID, updatingTimeFixed)
+        db.updateUser(userID, updatingTimeFixed)
     }
 
     // on sundays, make reports and reset streak
     if (updatingTime.getDay() === 0) { 
         //weekly attendance
-        let userList = getAllUserID();
+        let userList = db.getAllUserID();
         let userDataPath = process.env.USERS_DATA_DIR
 
-        let weeklyAttendance = getWeeklyAttendanceData()
+        let weeklyAttendance = attendanceManager.getWeeklyAttendanceData()
         let weeklyAttendanceByHandle = userList.filter((user) => {return weeklyAttendance[user]})
         let weeklyAttendanceByName= []
         for (let handle of weeklyAttendanceByHandle) {
-            let userData = getUserDataFromDB(handle);
+            let userData = db.getUserDataFromDB(handle);
             weeklyAttendanceByName.push(`${userData['startData']['name']}: 총 ${userData['stat']['weeklySolvedCount']} 문제`)
         }
 
@@ -101,9 +99,9 @@ cron.schedule('59 59 23 * * *', () => {
         }).catch((err) => {
             console.log("failed to send weekly Reports: " + err)
         })
- 
+
         for (let user of userList) {
-            let userData = getUserDataFromDB(user);
+            let userData = db.getUserDataFromDB(user);
             userData["stat"]["weeklySolvedCount"] = 0
 
             writeJSON(userDataPath + `${user}.json`, userData);
@@ -112,7 +110,6 @@ cron.schedule('59 59 23 * * *', () => {
 }, {
     timezone: "Asia/Seoul"
 });
-
 
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행
 client.login(token)
