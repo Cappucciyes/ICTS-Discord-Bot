@@ -73,10 +73,21 @@ cron.schedule('59 59 23 * * *', () => {
     let updatingTime = new Date();
     let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 23, 59, 59)
     let toUpdate = db.getAllUserID();
+
+    let loggerMessage = []
     for (let userID of toUpdate) {
         console.log(`updating ${userID}\n`)
         db.updateUser(userID, updatingTimeFixed)
+
+        loggerMessage.push("refactor test : updating" + userID+ `; solved ${userData['stat']['weeklySolvedCount']} problems`)  
     }
+
+    let message = loggerMessage.join('\n')
+    client.channels.fetch(channelID).then((foundChannel)=>{
+        foundChannel.send({content: message})
+    }).catch((err) => {
+        console.log("failed to send daily Reports: " + err)
+    })
 
     // on sundays, make reports and reset streak
     if (updatingTime.getDay() === 0) { 
