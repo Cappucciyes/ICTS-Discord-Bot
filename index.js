@@ -69,7 +69,7 @@ client.on(Events.InteractionCreate, (interaction)=> {
 })
 
 // schedule to update user everyday
-cron.schedule('59 * * * * *', () => {
+cron.schedule('59 59 23 * * *', () => {
     let updatingTime = new Date();
     let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 23, 59, 59)
     let toUpdate = db.getAllUserID();
