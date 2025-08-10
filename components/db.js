@@ -70,15 +70,14 @@ class DB {
                         // won't need this until achievements are implemented
                         let newSolvedProblems = allSolvedProblems.filter((problems)=> currentUserData["currentData"]["solved"].indexOf( problems ) < 0) 
 
-                        // 1. update all solved questions
-
-                        // 2. update weekly Solved
+                        // 1. update all solved questions and weekly Solved
                         currentUserData["stat"]["weeklySolvedCount"] += userDataResponse["solvedCount"] - currentUserData["currentData"]["solvedCount"]
                         
                         currentUserData["currentData"]["solved"] = allSolvedProblems
                         currentUserData["currentData"]["solvedCount"] = userDataResponse["solvedCount"]
                         currentUserData["currentData"]["tier"] = userDataResponse["tier"]
-                        // 3. update daily streak
+
+                        // 2. update daily streak
                         let lastSolvedDate = new Date(currentUserData["stat"]["lastSolvedDate"])
                         let nextDay = new Date(currentUserData["stat"]["lastSolvedDate"])
                         let twoDaysLater = new Date(currentUserData["stat"]["lastSolvedDate"])
@@ -88,6 +87,12 @@ class DB {
 
                         if (nextDay <= updateTime && updateTime < twoDaysLater) {
                             currentUserData["stat"]["currentStreak"] += 1 
+
+                            if (currentUserData["stat"]["currentStreak"] > currentUserData["currentData"]["longestStreak"]) {
+                                console.log("updating streak")
+                                currentUserData["currentData"]["longestStreak"] = currentUserData["stat"]["currentStreak"]
+                            } 
+
                         } else if (twoDaysLater <= updateTime) {
                             currentUserData["stat"]["currentStreak"] = 1 
                         }
