@@ -90,7 +90,7 @@ cron.schedule('59 * * * * *', () => {
     })
 
     // on sundays, make reports and reset streak
-    if (updatingTime.getDay() === 0) { 
+    if (updatingTime.getDay() === 1) { 
         //weekly attendance
         let userList = db.getAllUserID();
         let userDataPath = process.env.USERS_DATA_DIR
