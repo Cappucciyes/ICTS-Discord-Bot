@@ -24,6 +24,7 @@ class AttendanceManager {
 
         eventHandler.on("user:solvedProblemUpdated", (args) => {
             //implement
+            console.log("heard event user:solvedProblemUpdated")
             let userData = args.userData
             let userID = args.userID
 
