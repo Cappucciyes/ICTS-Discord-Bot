@@ -78,7 +78,8 @@ cron.schedule('59 * * * * *', () => {
     for (let userID of toUpdate) {
         console.log(`updating ${userID}\n`)
         db.updateUser(userID, updatingTimeFixed)
-        let userData = db.getUserDataFromDB(handle);
+
+        let userData = db.getUserDataFromDB(userID);
         loggerMessage.push("refactor test : updating" + userID+ `; solved ${userData['stat']['weeklySolvedCount']} problems`)  
     }
 
