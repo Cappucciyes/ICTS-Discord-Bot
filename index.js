@@ -90,38 +90,40 @@ cron.schedule('59 59 23 * * *', () => {
         console.log("failed to send daily Reports: " + err)
     })
 
-    // on sundays, make reports and reset streak
-    if (updatingTime.getDay() === 0) { 
-        //weekly attendance
-        let userList = db.getAllUserID();
-        let userDataPath = process.env.USERS_DATA_DIR
+    // quick fix for waiting for the update to be finish by the time the bot need to make the report. We just wait for 5 seconds
+    setTimeout(() => {
+        // on sundays, make reports and reset streak
+        if (updatingTime.getDay() === 0) { 
+            //weekly attendance
+            let userList = db.getAllUserID();
+            let userDataPath = process.env.USERS_DATA_DIR
 
-        let weeklyAttendance = attendanceManager.getWeeklyAttendanceData()
-        let weeklyAttendanceByHandle = userList.filter((user) => {return weeklyAttendance[user]})
-        let weeklyAttendanceByName= []
-        for (let handle of weeklyAttendanceByHandle) {
-            let userData = db.getUserDataFromDB(handle);
-            weeklyAttendanceByName.push(`${userData['startData']['name']}: 총 ${userData['stat']['weeklySolvedCount']} 문제`)
+            let weeklyAttendance = attendanceManager.getWeeklyAttendanceData()
+            let weeklyAttendanceByHandle = userList.filter((user) => {return weeklyAttendance[user]})
+            let weeklyAttendanceByName= []
+            for (let handle of weeklyAttendanceByHandle) {
+                let userData = db.getUserDataFromDB(handle);
+                weeklyAttendanceByName.push(`${userData['startData']['name']}: 총 ${userData['stat']['weeklySolvedCount']} 문제`)
+            }
+
+            weeklyAttendanceByName.sort()
+            let message = "refactor test : 이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "\n\n모두 수고하셨습니다!\n다음 주도 화이팅!"
+
+            client.channels.fetch(channelID).then((foundChannel)=>{
+                foundChannel.send({content: message})
+            }).catch((err) => {
+                console.log("failed to send weekly Reports: " + err)
+            })
+
+            for (let user of userList) {
+                let userData = db.getUserDataFromDB(user);
+                userData["stat"]["weeklySolvedCount"] = 0
+
+                writeJSON(userDataPath + `${user}.json`, userData);
+                attendanceManager.resetWeeklyAttendance(user);
+            }
         }
-
-        weeklyAttendanceByName.sort()
-        let message = "refactor test : 이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "\n\n모두 수고하셨습니다!\n다음 주도 화이팅!"
-
-        client.channels.fetch(channelID).then((foundChannel)=>{
-            foundChannel.send({content: message})
-        }).catch((err) => {
-            console.log("failed to send weekly Reports: " + err)
-        })
-
-        for (let user of userList) {
-            let userData = db.getUserDataFromDB(user);
-            userData["stat"]["weeklySolvedCount"] = 0
-
-            writeJSON(userDataPath + `${user}.json`, userData);
-            attendanceManager.resetWeeklyAttendance(user);
-        }
-
-    }
+    }, 5000)
 }, {
     timezone: "Asia/Seoul"
 });
