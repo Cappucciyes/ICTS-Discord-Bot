@@ -36,6 +36,7 @@ class AttendanceManager {
 
     resetWeeklyAttendance (userID) {
         let weeklyAttendance = this.getWeeklyAttendanceData() 
+        console.log("resetting weeklyAttendance: "+userID)
 
         if (!weeklyAttendance.hasOwnProperty(userID)) {
             console.error(`${userID} does not exists in weeklyAttendance`)

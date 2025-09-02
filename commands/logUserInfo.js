@@ -30,6 +30,7 @@ module.exports = {
                             if (key == 'solved') continue
                             infoString.push(`${key}: ${value}`)
                         }
+                        infoString.push(`${weeklySolved}: ${userData["stat"]["weeklySolvedCount"]}`)
 
                         await interaction.followUp({content: infoString.join('\n')})
                     } else {
@@ -59,6 +60,7 @@ module.exports = {
                                 if (key == 'solved') continue
                                 infoString.push(`${key}: ${value}`)
                             }
+                            infoString.push(`${weeklySolved}: ${userData["stat"]["weeklySolvedCount"]}`)
                             
                         } else {
                             await interaction.followUp({ content: `${userID}의 정보가 없어요!`, flags: MessageFlags.Ephemeral });

@@ -11,6 +11,7 @@ require('dotenv').config();
 const token = process.env.DISCORD_TOKEN;
 const serverID = process.env.SERVER_ID;
 const channelID = process.env.CHANNEL_ID
+const userDataPath = process.env.USERS_DATA_DIR
 
 let channel
 
@@ -74,13 +75,17 @@ cron.schedule('59 59 23 * * *', () => {
     let updatingTimeFixed = new Date(updatingTime.getFullYear(), updatingTime.getMonth(), updatingTime.getDate(), 23, 59, 59)
     let toUpdate = db.getAllUserID();
 
+    client.channels.fetch(channelID).then((foundChannel)=>{
+        foundChannel.send({content: updatingTime.toString()})
+    })
+
     let loggerMessage = []
     for (let userID of toUpdate) {
         console.log(`updating ${userID}\n`)
         db.updateUser(userID, updatingTimeFixed)
 
         let userData = db.getUserDataFromDB(userID);
-        loggerMessage.push("refactor test : updating" + userID+ `; solved ${userData['stat']['weeklySolvedCount']} problems`)  
+        loggerMessage.push("refactor test : updating " + userID+ `; solved ${userData['stat']['weeklySolvedCount']} problems`)  
     }
 
     let message = loggerMessage.join('\n')
@@ -90,13 +95,13 @@ cron.schedule('59 59 23 * * *', () => {
         console.log("failed to send daily Reports: " + err)
     })
 
-    // quick fix for waiting for the update to be finish by the time the bot need to make the report. We just wait for 5 seconds
+    // quick fix for waiting for the update to be finish by the time the bot need to make the report. We just wait for 60 seconds
     setTimeout(() => {
         // on sundays, make reports and reset streak
-        if (updatingTime.getDay() === 0) { 
+        if (updatingTimeFixed.getDay() === 0) { 
             //weekly attendance
+            console.log("making weekly reports")
             let userList = db.getAllUserID();
-            let userDataPath = process.env.USERS_DATA_DIR
 
             let weeklyAttendance = attendanceManager.getWeeklyAttendanceData()
             let weeklyAttendanceByHandle = userList.filter((user) => {return weeklyAttendance[user]})
@@ -116,18 +121,21 @@ cron.schedule('59 59 23 * * *', () => {
             })
 
             for (let user of userList) {
+                console.log("resetting weeklySolvedCount: " + user)
                 let userData = db.getUserDataFromDB(user);
                 userData["stat"]["weeklySolvedCount"] = 0
 
                 writeJSON(userDataPath + `${user}.json`, userData);
                 attendanceManager.resetWeeklyAttendance(user);
+
+                let updatedUserData= db.getUserDataFromDB(user);
+                console.log(`updated solvedCount ${user}: ${updatedUserData["stat"]["weeklySolvedCount"]}`)
             }
         }
-    }, 5000)
+    }, 60000)
 }, {
     timezone: "Asia/Seoul"
 });
 
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행
 client.login(token)
-
