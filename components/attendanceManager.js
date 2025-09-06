@@ -6,24 +6,22 @@ const USERS_DATA_DIR=process.env.USERS_DATA_DIR
 class AttendanceManager {
     constructor () {
         this.attendancePath = DATABASE_DIR + 'weeklyAttendance.json'        
+        this.attendanceData = readJSON(this.attendancePath)
         
         eventHandler.on("user:added", (newUser) => {
             let userID = newUser.userID;
 
-            let weeklyAttendance = this.getWeeklyAttendanceData() 
-
-            if (weeklyAttendance.hasOwnProperty(userID)) {
+            if (this.attendanceData.hasOwnProperty(userID)) {
                 console.error(`${userID} already exists in weeklyAttendance`)
                 return false
             } else {
-                weeklyAttendance[userID] = false 
-                this.setWeeklyAttendanceData(weeklyAttendance)
+                this.attendanceData[userID] = false 
+                this.setWeeklyAttendanceData(this.attendanceData)
                 return true
             } 
         })
 
         eventHandler.on("user:solvedProblemUpdated", (args) => {
-            //implement
             console.log("heard event user:solvedProblemUpdated")
             let userData = args.userData
             let userID = args.userID
@@ -33,34 +31,30 @@ class AttendanceManager {
     }
 
     // changing data
-
+    // WIP
     resetWeeklyAttendance (userID) {
-        let weeklyAttendance = this.getWeeklyAttendanceData() 
         console.log("resetting weeklyAttendance: "+userID)
 
-        if (!weeklyAttendance.hasOwnProperty(userID)) {
+        if (!this.attendanceData.hasOwnProperty(userID)) {
             console.error(`${userID} does not exists in weeklyAttendance`)
             return false
-        } else if (weeklyAttendance[userID]) {
-            weeklyAttendance[userID] = false 
-            this.setWeeklyAttendanceData(weeklyAttendance) 
+        } else if (this.attendanceData[userID]) {
+            this.attendanceData[userID] = false 
+            this.setWeeklyAttendanceData(this.attendanceData) 
         } 
 
         return true   
     } 
 
     updateAttendance(userID, userData) {
-        let weeklyAttendance = this.getWeeklyAttendanceData() 
-
-        if (!weeklyAttendance.hasOwnProperty(userID)) {
+        if (!this.attendanceData.hasOwnProperty(userID)) {
             console.error(`${userID} does not exists in weeklyAttendance`)
             return false
-        } else if (!weeklyAttendance[userID]) {
+        } else if (!this.attendanceData[userID]) {
             // check if weeklySolvedCount is more 3 or greater
             if(userData.stat.weeklySolvedCount >= 3) {
-                weeklyAttendance[userID] = true
-
-                this.setWeeklyAttendanceData(weeklyAttendance)
+                this.attendanceData[userID] = true
+                this.setWeeklyAttendanceData(this.attendanceData)
             } 
         } 
 
@@ -74,12 +68,7 @@ class AttendanceManager {
     // reading and getting data
 
     getWeeklyAttendanceData() {
-        return readJSON(this.attendancePath)
-    }
-
-    readWeeklyAttendance(userID) {
-        let weeklyAttendance = this.getWeeklyAttendanceData() 
-        return weeklyAttendance[userID]
+        return this.attendanceData 
     }
 }
 
