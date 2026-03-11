@@ -6,8 +6,8 @@ function readJSON(path) {
     return savedData;
 }
 
-function writeJSON(path, data){
-    fs.writeFileSync(path, JSON.stringify(data,null, 4));
+function writeJSON(path, data) {
+    fs.writeFileSync(path, JSON.stringify(data, null, 4));
 }
 
 module.exports = {
