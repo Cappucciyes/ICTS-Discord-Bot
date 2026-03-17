@@ -4,6 +4,7 @@ const { writeJSON, readJSON } = require("../utils/utilsIO.js")
 require('dotenv').config();
 const { getSolvedProblems, getUserData } = require('../utils/baekjoon.js');
 const { eventHandler } = require('../utils/eventHandler.js');
+const EVENT_NAME = require("../" + process.env.EVENT_NAME_PATH)
 
 class DB {
     constructor() {
@@ -45,7 +46,7 @@ class DB {
 
             writeJSON(userDataPath, userData)
             // every class that has to do something when a new user is added is going to get userID
-            eventHandler.emit("user:added", { userID: userID })
+            eventHandler.emit(EVENT_NAME.USER_ADDED, { userID: userID })
             return true
         } else {
             return false
@@ -105,7 +106,7 @@ class DB {
 
                         // let all classes that needs to do something when we detect user solved new problems 
                         // as of right now, only update attendance
-                        eventHandler.emit("user:solvedProblemUpdated", {
+                        eventHandler.emit(EVENT_NAME.USER_SOLVED_PROBLEM_UPDATED, {
                             userID: userID,
                             userData: currentUserData
                         })
@@ -165,7 +166,7 @@ class DB {
 
         if (fs.existsSync(userDataPath)) {
             fs.unlinkSync(userDataPath)
-            eventHandler.emit("user:deleted", { userID: userID })
+            eventHandler.emit(EVENT_NAME.USER_DELETED, { userID: userID })
             return true
         } else {
             console.error(`${userID} does not exist already!`)
