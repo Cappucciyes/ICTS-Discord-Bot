@@ -6,5 +6,5 @@ changes.json
 
 database/**/*.json
 
-
 commands/debug.js
+logs/
