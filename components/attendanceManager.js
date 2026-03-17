@@ -1,14 +1,14 @@
 const { writeJSON, readJSON } = require("../utils/utilsIO.js")
 const { eventHandler } = require("../utils/eventHandler.js")
 const DATABASE_DIR = process.env.DATABASE_DIR
-const USERS_DATA_DIR = process.env.USERS_DATA_DIR
+const EVENT_NAME = require("../" + process.env.EVENT_NAME_PATH)
 
 class AttendanceManager {
     constructor() {
         this.attendancePath = DATABASE_DIR + 'weeklyAttendance.json'
         this.attendanceData = readJSON(this.attendancePath)
 
-        eventHandler.on("user:added", (newUser) => {
+        eventHandler.on(EVENT_NAME.USER_ADDED, (newUser) => {
             let userID = newUser.userID;
 
             if (this.attendanceData.hasOwnProperty(userID)) {
@@ -21,7 +21,7 @@ class AttendanceManager {
             }
         })
 
-        eventHandler.on("user:deleted", (deletedUser) => {
+        eventHandler.on(EVENT_NAME.USER_DELETED, (deletedUser) => {
             let userID = deletedUser.userID;
 
             if (this.attendanceData.hasOwnProperty(userID)) {
@@ -32,7 +32,7 @@ class AttendanceManager {
             }
         })
 
-        eventHandler.on("user:solvedProblemUpdated", (args) => {
+        eventHandler.on(EVENT_NAME.USER_SOLVED_PROBLEM_UPDATED, (args) => {
             console.log("heard event user:solvedProblemUpdated")
             let userData = args.userData
             let userID = args.userID
