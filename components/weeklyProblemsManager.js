@@ -52,6 +52,14 @@ class WeeklyProblemsManger {
         this.weeklyProblemsSolvedCount[userID] = currentSolvedCount
         this.saveWeeklyProblemsSolvedCount();
     }
+
+    getWeeklyProblemSet() {
+        return this.weeklyProblemSet
+    }
+
+    getWeeklyProblemsSolvedCount() {
+        return this.weeklyProblemsSolvedCount
+    }
 }
 
 const weeklyProblemsManger = new WeeklyProblemsManger()
