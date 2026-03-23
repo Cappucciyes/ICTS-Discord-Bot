@@ -15,6 +15,10 @@ class WeeklyProblemsManger {
             this.reassignWeeklyProblems(problemSet)
         })
 
+        eventHandler.on(EVENT_NAME.USER_DELETED, (user) => {
+            this.deleteUser(user.userID);
+        })
+
         eventHandler.on(EVENT_NAME.USER_SOLVED_PROBLEM_UPDATED, (updatedUserData) => {
             console.log(`heard ${EVENT_NAME.USER_SOLVED_PROBLEM_UPDATED} from weeklyProblemsManger`)
             this.updateWeeklyProbleSolvedCountForSingleUser(updatedUserData.userID, updatedUserData.userData)
@@ -38,6 +42,11 @@ class WeeklyProblemsManger {
             this.weeklyProblemsSolvedCount[user] = currentSolvedCount
             console.log(`finished counting ${user}: ${this.weeklyProblemsSolvedCount[user]}`)
         }
+        this.saveWeeklyProblemsSolvedCount();
+    }
+
+    deleteUser(userID) {
+        delete this.weeklyProblemsSolvedCount[userID];
         this.saveWeeklyProblemsSolvedCount();
     }
 
