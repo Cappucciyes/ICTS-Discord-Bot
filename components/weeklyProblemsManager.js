@@ -15,6 +15,10 @@ class WeeklyProblemsManger {
             this.reassignWeeklyProblems(problemSet)
         })
 
+        eventHandler.on(EVENT_NAME.USER_DELETED, (user) => {
+            this.deleteUser(user.userID);
+        })
+
         eventHandler.on(EVENT_NAME.USER_SOLVED_PROBLEM_UPDATED, (updatedUserData) => {
             console.log(`heard ${EVENT_NAME.USER_SOLVED_PROBLEM_UPDATED} from weeklyProblemsManger`)
             this.updateWeeklyProbleSolvedCountForSingleUser(updatedUserData.userID, updatedUserData.userData)
@@ -41,6 +45,11 @@ class WeeklyProblemsManger {
         this.saveWeeklyProblemsSolvedCount();
     }
 
+    deleteUser(userID) {
+        delete this.weeklyProblemsSolvedCount[userID];
+        this.saveWeeklyProblemsSolvedCount();
+    }
+
     saveWeeklyProblemsSolvedCount() {
         writeJSON(this.weeklyProblemsSolvedCountPath, this.weeklyProblemsSolvedCount)
     }
@@ -51,6 +60,14 @@ class WeeklyProblemsManger {
 
         this.weeklyProblemsSolvedCount[userID] = currentSolvedCount
         this.saveWeeklyProblemsSolvedCount();
+    }
+
+    getWeeklyProblemSet() {
+        return this.weeklyProblemSet
+    }
+
+    getWeeklyProblemsSolvedCount() {
+        return this.weeklyProblemsSolvedCount
     }
 }
 

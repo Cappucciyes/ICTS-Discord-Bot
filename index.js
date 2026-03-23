@@ -114,6 +114,7 @@ cron.schedule('59 59 23 * * *', () => {
 
                 weeklyAttendanceByName.sort()
                 let message = "refactor test : 이번 주 3문제 이상 푼 멤버들!\n" + weeklyAttendanceByName.join("\n") + "\n\n모두 수고하셨습니다!\n다음 주도 화이팅!"
+                // make weekly solved count stuff here
 
                 client.channels.fetch(channelID).then((foundChannel) => {
                     foundChannel.send({ content: message })
@@ -121,6 +122,7 @@ cron.schedule('59 59 23 * * *', () => {
                     console.log("failed to send weekly Reports: " + err)
                 })
 
+                // reset solve count
                 for (let user of userList) {
                     console.log("resetting weeklySolvedCount: " + user)
                     let userData = db.getUserDataFromDB(user);
